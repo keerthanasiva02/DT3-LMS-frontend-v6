@@ -19,9 +19,9 @@ export default function LearningPathStepper() {
             <div
               className={`w-3 h-3 rounded-full ${
                 step.status === "completed"
-                  ? "bg-indigo-600"
+                  ? "bg-teal-600"
                   : step.status === "current"
-                  ? "bg-indigo-400"
+                  ? "bg-teal-400"
                   : "bg-slate-300"
               }`}
             />

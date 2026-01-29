@@ -13,7 +13,7 @@ export default function CourseCard({ course }: any) {
         <div className="mb-3">
           <div className="w-full bg-slate-200 rounded-full h-2">
             <div
-              className="bg-indigo-600 h-2 rounded-full"
+              className="bg-teal-600 h-2 rounded-full"
               style={{ width: `${course.progress}%` }}
             />
           </div>
@@ -34,7 +34,7 @@ export default function CourseCard({ course }: any) {
         </span>
   
         <div className="mt-auto flex gap-2">
-          <button className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">
+          <button className="flex-1 bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-700">
             Continue
           </button>
           <button className="flex-1 border border-slate-300 py-2 rounded-lg text-slate-700">

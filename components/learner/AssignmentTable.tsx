@@ -51,7 +51,7 @@ export default function AssignmentTable() {
               <td className="pr-4">
                 <Link
                   href={`/dashboard/learner/assignments/${a.id}`}
-                  className="text-indigo-600 font-medium"
+                  className="text-teal-600 font-medium"
                 >
                   View
                 </Link>

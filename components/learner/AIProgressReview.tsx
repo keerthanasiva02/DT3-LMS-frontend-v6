@@ -2,8 +2,8 @@
 
 export default function AIProgressReview() {
   return (
-    <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6">
-      <h2 className="flex items-center gap-2 text-lg font-semibold text-indigo-800">
+    <div className="bg-teal-50 border border-teal-200 rounded-xl p-6">
+      <h2 className="flex items-center gap-2 text-lg font-semibold text-teal-800">
         🤖 AI Progress Review
       </h2>
 
@@ -19,10 +19,10 @@ export default function AIProgressReview() {
       </div>
 
       <div className="mt-5 flex gap-3">
-        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+        <button className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition">
           View Action Plan
         </button>
-        <button className="px-4 py-2 border border-indigo-400 text-indigo-700 rounded-lg hover:bg-indigo-100 transition">
+        <button className="px-4 py-2 border border-teal-400 text-teal-700 rounded-lg hover:bg-teal-100 transition">
           Ask AI Mentor
         </button>
       </div>

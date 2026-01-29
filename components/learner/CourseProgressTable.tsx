@@ -76,7 +76,7 @@ export default function CourseProgressTable() {
                 </td>
                 <td className="py-3 text-sm font-medium">
                   {course.status === "In Progress" && (
-                    <span className="text-indigo-600">
+                    <span className="text-teal-600">
                       {course.status}
                     </span>
                   )}

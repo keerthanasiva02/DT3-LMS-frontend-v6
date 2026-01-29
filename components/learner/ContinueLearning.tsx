@@ -34,12 +34,12 @@ export default function ContinueLearning() {
 
             <div className="h-2 bg-slate-200 rounded-full mb-6">
               <div
-                className="h-2 bg-indigo-500 rounded-full"
+                className="h-2 bg-teal-500 rounded-full"
                 style={{ width: `${c.progress}%` }}
               />
             </div>
 
-            <button className="w-full bg-indigo-600 text-white py-3 rounded-xl text-lg hover:bg-indigo-700 transition">
+            <button className="w-full bg-teal-600 text-white py-3 rounded-xl text-lg hover:bg-teal-700 transition">
               Resume
             </button>
           </div>

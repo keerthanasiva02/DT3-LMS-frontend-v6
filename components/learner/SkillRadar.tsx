@@ -34,8 +34,8 @@ export default function SkillRadar() {
               <Radar
                 name="Current"
                 dataKey="current"
-                stroke="#6366f1"
-                fill="#6366f1"
+                stroke="#0fa8a8"
+                fill="#0fa8a8"
                 fillOpacity={0.4}
               />
               <Radar
@@ -55,7 +55,7 @@ export default function SkillRadar() {
           <p>• Databases need more practice</p>
           <p>• Cloud fundamentals need improvement</p>
 
-          <button className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+          <button className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
             View Recommended Courses
           </button>
         </div>

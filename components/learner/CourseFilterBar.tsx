@@ -6,7 +6,7 @@ export default function CourseFilterBar() {
       <input
         type="text"
         placeholder="Search courses..."
-        className="flex-1 border border-slate-300 rounded-lg px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="flex-1 border border-slate-300 rounded-lg px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
       />
 
       <select className="border border-slate-300 rounded-lg px-3 py-2 text-slate-700">

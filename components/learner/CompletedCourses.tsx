@@ -9,7 +9,7 @@ export default function CompletedCourses() {
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <h4 className="font-medium text-slate-800">React Fundamentals</h4>
             <p className="text-sm text-slate-500">Certificate Earned</p>
-            <button className="mt-3 text-indigo-600 font-medium">
+            <button className="mt-3 text-teal-600 font-medium">
               Download Certificate
             </button>
           </div>

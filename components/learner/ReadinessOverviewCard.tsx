@@ -4,8 +4,8 @@ export default function ReadinessOverviewCard() {
       
       {/* Left */}
       <div className="flex items-center gap-6">
-        <div className="w-28 h-28 rounded-full border-8 border-indigo-300 flex items-center justify-center">
-          <span className="text-indigo-600 text-2xl font-bold">72%</span>
+        <div className="w-28 h-28 rounded-full border-8 border-teal-300 flex items-center justify-center">
+          <span className="text-teal-600 text-2xl font-bold">72%</span>
         </div>
 
         <div>
@@ -32,7 +32,7 @@ export default function ReadinessOverviewCard() {
 
             <div className="h-2 bg-slate-200 rounded-full">
               <div
-                className="h-2 bg-indigo-500 rounded-full"
+                className="h-2 bg-teal-500 rounded-full"
                 style={{ width: `${s.value}%` }}
               />
             </div>

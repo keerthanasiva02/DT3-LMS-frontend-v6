@@ -6,7 +6,7 @@ export default function CourseListRow({ course }: any) {
         <td className="text-slate-600">{course.lastAccessed}</td>
         <td className="text-slate-600">{course.nextTask}</td>
         <td>
-          <button className="text-indigo-600 font-medium">Continue</button>
+          <button className="text-teal-600 font-medium">Continue</button>
         </td>
       </tr>
     );

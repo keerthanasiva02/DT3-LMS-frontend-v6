@@ -1,9 +1,9 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
-export default function SignupDetailsPage() {
+function SignupDetailsContent() {
   const params = useSearchParams();
   const router = useRouter();
 
@@ -74,5 +74,13 @@ export default function SignupDetailsPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignupDetailsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Loading...</div>}>
+      <SignupDetailsContent />
+    </Suspense>
   );
 }

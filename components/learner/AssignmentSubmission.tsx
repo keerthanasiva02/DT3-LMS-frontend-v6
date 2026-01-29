@@ -7,7 +7,7 @@ export default function AssignmentSubmission() {
           placeholder="GitHub Repo URL"
           className="border rounded px-3 py-2 w-full text-sm"
         />
-        <button className="mt-3 bg-indigo-600 text-white px-4 py-2 rounded">
+        <button className="mt-3 bg-teal-600 text-white px-4 py-2 rounded">
           Submit New Version
         </button>
       </div>
