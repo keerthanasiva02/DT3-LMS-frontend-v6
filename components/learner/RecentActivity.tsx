@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useLearnerProgress } from "@/context/LearnerProgressContext";
 import { BookOpen, CheckCircle, FileText, HelpCircle } from "lucide-react";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function formatTimestamp(isoDate: string): string {
   const date = new Date(isoDate);
   const now = new Date();
@@ -16,7 +18,7 @@ function formatTimestamp(isoDate: string): string {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 export default function RecentActivity() {

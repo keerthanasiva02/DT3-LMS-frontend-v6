@@ -4,12 +4,11 @@ import Link from "next/link";
 import { useLearnerProgress } from "@/context/LearnerProgressContext";
 import { Award, Lock, ChevronRight } from "lucide-react";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function formatDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const date = new Date(isoDate);
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 export default function CertificatesSnapshot() {

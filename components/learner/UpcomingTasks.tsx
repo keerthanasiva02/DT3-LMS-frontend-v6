@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useLearnerProgress } from "@/context/LearnerProgressContext";
 import { ChevronRight, AlertCircle } from "lucide-react";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function formatDueDate(isoDate: string): string {
   const date = new Date(isoDate);
   const now = new Date();
@@ -13,7 +15,7 @@ function formatDueDate(isoDate: string): string {
   if (diffDays === 1) return "Tomorrow";
   if (diffDays <= 7) return `${diffDays} days`;
   if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} weeks`;
-  return date.toLocaleDateString();
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 export default function UpcomingTasks() {

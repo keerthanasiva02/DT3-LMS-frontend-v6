@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   User,
   Lock,
@@ -15,6 +15,7 @@ import {
   Camera,
   ChevronRight,
 } from "lucide-react";
+import { getCurrentUser, setCurrentUser } from "@/lib/currentUser";
 
 const SECTIONS = [
   { id: "profile", label: "Profile Settings", icon: User },
@@ -31,9 +32,7 @@ const SECTIONS = [
 
 type SectionId = (typeof SECTIONS)[number]["id"];
 
-const MOCK_USER = {
-  fullName: "Alex Johnson",
-  email: "alex.johnson@company.com",
+const DEFAULT_READONLY = {
   employeeId: "EMP-2024-0847",
   role: "Software Engineer",
   department: "Engineering",
@@ -42,6 +41,32 @@ const MOCK_USER = {
 
 export default function LearnerSettingsPage() {
   const [activeSection, setActiveSection] = useState<SectionId>("profile");
+  const [profileUser, setProfileUser] = useState({
+    fullName: "",
+    email: "",
+    ...DEFAULT_READONLY,
+  });
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setProfileUser((prev) => ({
+        ...prev,
+        fullName: user.name,
+        email: user.email,
+      }));
+    } else {
+      setProfileUser((prev) => ({
+        ...prev,
+        fullName: "Learner",
+        email: "",
+      }));
+    }
+  }, []);
+
+  const handleProfileSave = (fullName: string, email: string) => {
+    setCurrentUser({ name: fullName, email });
+  };
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] bg-white">
@@ -70,8 +95,12 @@ export default function LearnerSettingsPage() {
 
       {/* Right: Content panel */}
       <main className="flex-1 overflow-y-auto p-8">
-        {activeSection === "profile" && <ProfileSettings user={MOCK_USER} />}
-        {activeSection === "security" && <AccountSecurity user={MOCK_USER} />}
+        {activeSection === "profile" && (
+          <ProfileSettings user={profileUser} onSave={handleProfileSave} />
+        )}
+        {activeSection === "security" && (
+          <AccountSecurity user={profileUser} />
+        )}
         {activeSection === "notifications" && <NotificationPreferences />}
         {activeSection === "learning" && <LearningPreferences />}
         {activeSection === "accessibility" && <AccessibilitySettings />}
@@ -86,13 +115,32 @@ export default function LearnerSettingsPage() {
 }
 
 /* --- Profile Settings --- */
+type ProfileUser = {
+  fullName: string;
+  email: string;
+  employeeId: string;
+  role: string;
+  department: string;
+  lastPasswordUpdated: string;
+};
+
 function ProfileSettings({
   user,
+  onSave,
 }: {
-  user: typeof MOCK_USER;
+  user: ProfileUser;
+  onSave?: (fullName: string, email: string) => void;
 }) {
   const [fullName, setFullName] = useState(user.fullName);
   const [timezone, setTimezone] = useState("America/New_York");
+
+  useEffect(() => {
+    setFullName(user.fullName);
+  }, [user.fullName]);
+
+  const handleSave = () => {
+    onSave?.(fullName, user.email);
+  };
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -170,14 +218,14 @@ function ProfileSettings({
           </div>
         </div>
 
-        <SaveButton />
+        <SaveButton onClick={handleSave} />
       </div>
     </div>
   );
 }
 
 /* --- Account & Security --- */
-function AccountSecurity({ user }: { user: typeof MOCK_USER }) {
+function AccountSecurity({ user }: { user: ProfileUser }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -966,10 +1014,11 @@ function ToggleRow({
   );
 }
 
-function SaveButton() {
+function SaveButton({ onClick }: { onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="mt-6 px-5 py-2.5 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition"
     >
       Save Changes

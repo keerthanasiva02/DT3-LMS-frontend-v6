@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { setCurrentUser, getNameFromEmail } from "@/lib/currentUser";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,6 +47,12 @@ export default function LoginPage() {
       localStorage.setItem("loggedEmails", JSON.stringify(emails));
       setSavedEmails(emails);
     }
+
+    // Set current user (name from signup "users" or derived from email)
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    const signedUpUser = users.find((u: { email: string; firstName?: string }) => u.email === email);
+    const name = signedUpUser?.firstName ?? getNameFromEmail(email);
+    setCurrentUser({ name, email });
 
     // Role-based routing (mock)
     if (email === "admin@digitalt3.com") router.push("/dashboard/admin");

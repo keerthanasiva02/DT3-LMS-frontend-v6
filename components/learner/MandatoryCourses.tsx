@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useLearnerProgress } from "@/context/LearnerProgressContext";
 import { ChevronRight, AlertCircle, CheckCircle } from "lucide-react";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function formatDueDate(isoDate: string): string {
   const date = new Date(isoDate);
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const d = date.getDate();
+  const m = MONTHS[date.getMonth()];
+  const y = date.getFullYear();
+  return `${m} ${d}, ${y}`;
 }
 
 export default function MandatoryCourses() {
