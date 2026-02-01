@@ -84,7 +84,7 @@ export default function InstructorSettingsPage() {
   };
 
   const sections = [
-    { id: "profile" as const, label: "Profile", icon: User },
+    { id: "profile" as const, label: "Instructor profile", icon: User },
     { id: "courses" as const, label: "Assigned Courses", icon: BookOpen },
     { id: "notifications" as const, label: "Notifications", icon: Bell },
     { id: "accessibility" as const, label: "Accessibility", icon: Eye },
@@ -93,8 +93,8 @@ export default function InstructorSettingsPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-800">Settings</h1>
-        <p className="text-slate-500 mt-1">Manage your instructor profile and preferences</p>
+        <h1 className="text-2xl font-semibold text-slate-800">Instructor Settings</h1>
+        <p className="text-slate-500 mt-1">Manage your instructor profile, assigned courses, and preferences</p>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">

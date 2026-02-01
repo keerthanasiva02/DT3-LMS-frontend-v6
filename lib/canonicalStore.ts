@@ -51,21 +51,13 @@ function saveState(state: CanonicalStoreState) {
 }
 
 let state = loadInitial();
+let hydrated = false;
 const listeners = new Set<() => void>();
 
 export function getCanonicalState(): CanonicalStoreState {
-  if (typeof window !== "undefined") {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as CanonicalStoreState;
-        state = {
-          courses: parsed.courses ?? loadInitial().courses,
-          assignments: parsed.assignments ?? loadInitial().assignments,
-          quizConfigs: parsed.quizConfigs ?? loadInitial().quizConfigs,
-        };
-      }
-    } catch (_) {}
+  if (typeof window !== "undefined" && !hydrated) {
+    hydrated = true;
+    state = loadState();
   }
   return state;
 }
@@ -135,6 +127,13 @@ export function archiveCourse(id: string) {
 
 export function publishCourse(id: string) {
   updateCourse(id, { status: "published" });
+}
+
+export function deleteCourse(id: string) {
+  setState((prev) => ({
+    ...prev,
+    courses: prev.courses.filter((c) => c.id !== id),
+  }));
 }
 
 // ——— Assignments ———

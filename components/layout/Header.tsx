@@ -16,6 +16,9 @@ export default function Header() {
   const isAuthPage = pathname === "/" || pathname.startsWith("/auth");
   const isInstructor = pathname?.startsWith("/dashboard/instructor");
   const isLearner = pathname?.startsWith("/dashboard/learner");
+  const isAdmin = pathname?.startsWith("/dashboard/admin");
+  const isManager = pathname?.startsWith("/dashboard/manager");
+  const showProfileDropdown = isInstructor || isLearner || isAdmin || isManager;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -51,7 +54,7 @@ export default function Header() {
 
         {!isAuthPage && (
           <div className="relative flex items-center gap-2" ref={dropdownRef}>
-            {isInstructor ? (
+            {showProfileDropdown ? (
               <>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
@@ -68,7 +71,15 @@ export default function Header() {
                       <p className="text-xs text-slate-500 truncate">{user?.email ?? ""}</p>
                     </div>
                     <Link
-                      href="/dashboard/instructor/settings"
+                      href={
+                        isInstructor
+                          ? "/dashboard/instructor/settings"
+                          : isLearner
+                            ? "/dashboard/learner/settings"
+                            : isAdmin
+                              ? "/dashboard/admin/settings"
+                              : "/dashboard/manager/settings"
+                      }
                       onClick={() => setProfileOpen(false)}
                       className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
                     >
@@ -85,23 +96,7 @@ export default function Header() {
                   </div>
                 )}
               </>
-            ) : isLearner ? (
-              <Link
-                href="/dashboard/learner/settings"
-                className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 hover:bg-teal-200 transition"
-                aria-label="Settings"
-              >
-                <User size={22} strokeWidth={1.5} />
-              </Link>
-            ) : (
-              <Link
-                href="/dashboard/learner/settings"
-                className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 hover:bg-teal-200 transition"
-                aria-label="Settings"
-              >
-                <User size={22} strokeWidth={1.5} />
-              </Link>
-            )}
+            ) : null}
           </div>
         )}
       </div>

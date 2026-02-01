@@ -1,6 +1,7 @@
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import { CanonicalStoreProvider } from "@/context/CanonicalStoreContext";
+import AIChatWidget from "@/components/global/AIChatWidget";
 
 export default function RootLayout({
   children,
@@ -13,6 +14,7 @@ export default function RootLayout({
         <CanonicalStoreProvider>
           <Header />
           {children}
+          <AIChatWidget />
         </CanonicalStoreProvider>
       </body>
     </html>

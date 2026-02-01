@@ -7,16 +7,20 @@ import type { Assignment } from "@/data/assignments";
 import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 export default function AssignmentListing() {
-  const { getAssignments } = useCanonicalStore();
-  const assignments = getAssignments();
+  const { state } = useCanonicalStore();
+  const assignments = state.assignments;
   const initialSorted = useMemo(
     () => [...assignments].sort((a, b) => new Date(a.dueDateISO).getTime() - new Date(b.dueDateISO).getTime()),
     [assignments]
   );
   const [filtered, setFiltered] = useState<Assignment[]>(initialSorted);
+
   useEffect(() => {
-    setFiltered(initialSorted);
-  }, [initialSorted]);
+    const sorted = [...assignments].sort(
+      (a, b) => new Date(a.dueDateISO).getTime() - new Date(b.dueDateISO).getTime()
+    );
+    setFiltered(sorted);
+  }, [state.assignments.length, state.courses.length, assignments]);
 
   return (
     <div className="space-y-6">

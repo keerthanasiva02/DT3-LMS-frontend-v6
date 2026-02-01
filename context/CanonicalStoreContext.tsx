@@ -18,6 +18,7 @@ import {
   setCourseModules,
   archiveCourse,
   publishCourse,
+  deleteCourse,
   getAssignments,
   getAssignmentById,
   addAssignment,
@@ -44,6 +45,7 @@ type CanonicalContextValue = {
   setCourseModules: typeof setCourseModules;
   archiveCourse: typeof archiveCourse;
   publishCourse: typeof publishCourse;
+  deleteCourse: typeof deleteCourse;
   // Assignments
   getAssignments: typeof getAssignments;
   getAssignmentById: typeof getAssignmentById;
@@ -82,9 +84,10 @@ export function CanonicalStoreProvider({ children }: { children: React.ReactNode
     addCourse,
     updateCourse,
     setCourseModules,
-    archiveCourse,
-    publishCourse,
-    getAssignments,
+  archiveCourse,
+  publishCourse,
+  deleteCourse,
+  getAssignments,
     getAssignmentById: (id) => getAssignmentById(id),
     addAssignment,
     updateAssignment,

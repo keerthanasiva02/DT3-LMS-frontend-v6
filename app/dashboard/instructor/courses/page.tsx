@@ -8,6 +8,7 @@ import {
   Edit2,
   Users,
   Archive,
+  Trash2,
   MoreVertical,
   BarChart3,
 } from "lucide-react";
@@ -44,8 +45,9 @@ export default function InstructorCoursesPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const { getCoursesForInstructor, archiveCourse } = useCanonicalStore();
+  const { getCoursesForInstructor, archiveCourse, deleteCourse } = useCanonicalStore();
   const courses = getCoursesForInstructor();
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const filteredCourses = courses.filter((c) => {
     const matchesSearch =
@@ -234,6 +236,16 @@ export default function InstructorCoursesPage() {
                             <Archive className="w-4 h-4" />
                             Archive Course
                           </button>
+                          <button
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              setDeleteConfirmId(course.id);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete Course
+                          </button>
                         </div>
                       )}
                     </div>
@@ -259,6 +271,35 @@ export default function InstructorCoursesPage() {
           onClick={() => setOpenMenuId(null)}
           aria-hidden="true"
         />
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-slate-800">Delete course?</h3>
+            <p className="text-slate-600 mt-2 text-sm">
+              This will remove the course permanently. Learners will no longer see it. This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteCourse(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }}
+                className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
