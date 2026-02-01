@@ -1,8 +1,11 @@
-import { getCourseInPath, getPathBySlug } from "@/data/learningPaths";
-import { getCourseById, toLearnerModules } from "@/data/canonicalCourses";
-import { notFound } from "next/navigation";
+"use client";
+
+import { useParams } from "next/navigation";
+import { getPathBySlug } from "@/data/learningPaths";
+import { toLearnerModules } from "@/data/canonicalCourses";
 import { CourseDetailClient } from "./CourseDetailClient";
 import type { Module } from "@/data/learningPaths";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 function getDefaultModules(courseTitle: string): Module[] {
   return [
@@ -14,51 +17,48 @@ function getDefaultModules(courseTitle: string): Module[] {
   ];
 }
 
-export default async function CourseDetailPage({
-  params,
-}: {
-  params: Promise<{ pathId: string; courseId: string }>;
-}) {
-  const { pathId, courseId } = await params;
-
-  // Prefer canonical published course — same content instructor created
+export default function CourseDetailPage() {
+  const params = useParams();
+  const pathId = params.pathId as string;
+  const courseId = params.courseId as string;
+  const { getCourseById } = useCanonicalStore();
   const canonicalCourse = getCourseById(courseId);
-  if (canonicalCourse && canonicalCourse.status === "published") {
-    const path = getPathBySlug(canonicalCourse.pathSlug);
-    if (path) {
-      const modules = toLearnerModules(canonicalCourse.modules);
-      const course: { id: string; title: string; description: string; duration: string; instructor: { name: string; role: string }; skills: string[]; modules: Module[] } = {
-        id: canonicalCourse.id,
-        title: canonicalCourse.title,
-        description: canonicalCourse.description,
-        duration: canonicalCourse.estimatedDuration,
-        instructor: canonicalCourse.instructor,
-        skills: canonicalCourse.skills,
-        modules: modules.length > 0 ? modules : getDefaultModules(canonicalCourse.title),
-      };
-      return (
-        <CourseDetailClient path={path} course={course} />
-      );
-    }
+  const path = pathId ? getPathBySlug(pathId) : canonicalCourse ? getPathBySlug(canonicalCourse.pathSlug) : null;
+
+  if (!path) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p className="text-slate-600">Path not found</p>
+      </div>
+    );
   }
 
-  // Fallback to learningPaths
-  const result = getCourseInPath(pathId, courseId);
-  if (!result) notFound();
+  if (!canonicalCourse) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p className="text-slate-600">Course not found</p>
+      </div>
+    );
+  }
 
-  const { path, course } = result;
-  const modules =
-    course.modules.length > 0
-      ? course.modules
-      : getDefaultModules(course.title);
+  if (canonicalCourse.status !== "published" && canonicalCourse.status !== "archived") {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p className="text-slate-600">This course is not yet published.</p>
+      </div>
+    );
+  }
 
-  return (
-    <CourseDetailClient
-      path={path}
-      course={{
-        ...course,
-        modules,
-      }}
-    />
-  );
+  const modules = toLearnerModules(canonicalCourse.modules);
+  const course = {
+    id: canonicalCourse.id,
+    title: canonicalCourse.title,
+    description: canonicalCourse.description,
+    duration: canonicalCourse.estimatedDuration,
+    instructor: canonicalCourse.instructor,
+    skills: canonicalCourse.skills,
+    modules: modules.length > 0 ? modules : getDefaultModules(canonicalCourse.title),
+  };
+
+  return <CourseDetailClient path={path} course={course} />;
 }

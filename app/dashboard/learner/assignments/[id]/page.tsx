@@ -1,20 +1,21 @@
+"use client";
+
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import { assignments } from "@/data/assignments";
 import AssignmentStatusBadge from "@/components/learner/AssignmentStatusBadge";
 import AssignmentSubmission from "@/components/learner/AssignmentSubmission";
 import AIAssignmentFeedback from "@/components/learner/AIAssignmentFeedback";
 import AssignmentDetailContent from "@/components/learner/AssignmentDetailContent";
 import ProgressIntegrationCard from "@/components/learner/ProgressIntegrationCard";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
-type Props = {
-  params: Promise<{ id: string }>;
-};
-
-export default async function AssignmentDetailPage({ params }: Props) {
-  const { id } = await params;
-  const assignment = assignments.find((a) => a.id === id);
+export default function AssignmentDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
+  const { getAssignmentById } = useCanonicalStore();
+  const assignment = getAssignmentById(id);
 
   if (!assignment) {
     return (
@@ -31,7 +32,8 @@ export default async function AssignmentDetailPage({ params }: Props) {
   }
 
   if (assignment.type === "Quiz") {
-    redirect(`/dashboard/learner/quiz/${id}`);
+    router.replace(`/dashboard/learner/quiz/${id}`);
+    return null;
   }
 
   return (

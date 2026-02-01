@@ -3,16 +3,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { ROLES, PHASES } from "@/data/canonicalCourses";
-import { learningPaths } from "@/data/learningPaths";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
+import { getCurrentUser } from "@/lib/currentUser";
 
-const allCourses = Array.from(
-  new Map(learningPaths.flatMap((p) => p.phases.flatMap((ph) => ph.courses)).map((c) => [c.id, c])).values()
-);
+const ROLE_TO_PATH_SLUG: Record<string, string> = {
+  "Full Stack Developer": "fullstack",
+  "UI / UX Designer": "uiux",
+  "Data Analyst / Engineer": "data-analyst",
+  "Cloud & DevOps Engineer": "cloud-devops",
+  "QA Engineer": "qa",
+  "Digital Marketing": "digital-marketing",
+};
 
 export default function NewCoursePage() {
   const router = useRouter();
+  const { addCourse, getCoursesForInstructor } = useCanonicalStore();
+  const existingCourses = getCoursesForInstructor();
+  const allCourseIds = [...new Set(existingCourses.map((c) => c.id))];
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -45,7 +55,33 @@ export default function NewCoursePage() {
   };
 
   const handleSubmit = () => {
-    // Frontend only - simulate create
+    if (!form.title.trim()) return;
+    const user = getCurrentUser();
+    const pathSlug = form.roles[0] ? ROLE_TO_PATH_SLUG[form.roles[0]] ?? "fullstack" : "fullstack";
+    const id = form.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || `course-${Date.now()}`;
+    const uniqueId = allCourseIds.includes(id) ? `${id}-${Date.now()}` : id;
+    const today = new Date().toISOString().slice(0, 10);
+    addCourse({
+      id: uniqueId,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      thumbnail: form.thumbnail.trim() || undefined,
+      estimatedDuration: form.estimatedDuration.trim(),
+      status: "draft",
+      roles: form.roles,
+      phase: form.phase,
+      courseOrder: form.courseOrder,
+      isMandatory: form.isMandatory,
+      prerequisiteCourseIds: form.prerequisiteCourseIds,
+      modules: [],
+      instructor: { name: user?.name ?? "Instructor", role: "Tech Lead" },
+      skills: [],
+      pathSlug,
+      lastUpdated: today,
+      enrolledCount: 0,
+      completionRate: 0,
+      createdAt: today,
+    });
     router.push("/dashboard/instructor/courses");
   };
 
@@ -179,7 +215,7 @@ export default function NewCoursePage() {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Select prerequisites (optional)</label>
             <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1">
-              {allCourses.slice(0, 20).map((c) => (
+              {existingCourses.slice(0, 20).map((c) => (
                 <label key={c.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
                   <input
                     type="checkbox"

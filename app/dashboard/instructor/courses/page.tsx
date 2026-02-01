@@ -11,11 +11,8 @@ import {
   MoreVertical,
   BarChart3,
 } from "lucide-react";
-import {
-  getCoursesForInstructor,
-  ROLES,
-  COURSE_STATUS,
-} from "@/data/canonicalCourses";
+import { ROLES, COURSE_STATUS } from "@/data/canonicalCourses";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -47,7 +44,7 @@ export default function InstructorCoursesPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-
+  const { getCoursesForInstructor, archiveCourse } = useCanonicalStore();
   const courses = getCoursesForInstructor();
 
   const filteredCourses = courses.filter((c) => {
@@ -228,7 +225,11 @@ export default function InstructorCoursesPage() {
                             View Learners
                           </Link>
                           <button
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full"
+                            onClick={() => {
+                              archiveCourse(course.id);
+                              setOpenMenuId(null);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full text-left"
                           >
                             <Archive className="w-4 h-4" />
                             Archive Course

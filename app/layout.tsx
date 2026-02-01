@@ -1,5 +1,6 @@
 import "./globals.css";
 import Header from "@/components/layout/Header";
+import { CanonicalStoreProvider } from "@/context/CanonicalStoreContext";
 
 export default function RootLayout({
   children,
@@ -9,8 +10,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-white text-slate-900">
-        <Header />
-        {children}
+        <CanonicalStoreProvider>
+          <Header />
+          {children}
+        </CanonicalStoreProvider>
       </body>
     </html>
   );

@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { Calendar, ChevronRight } from "lucide-react";
 import AssignmentStatusBadge from "./AssignmentStatusBadge";
-import { assignments } from "@/data/assignments";
 import type { Assignment } from "@/data/assignments";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 function groupByRoleAndCourse(items: Assignment[]) {
   const groups: Record<string, Assignment[]> = {};
@@ -22,6 +22,8 @@ function groupByRoleAndCourse(items: Assignment[]) {
 }
 
 export default function AssignmentTimeline() {
+  const { getAssignments } = useCanonicalStore();
+  const assignments = getAssignments();
   const sorted = [...assignments].sort(
     (a, b) => new Date(a.dueDateISO).getTime() - new Date(b.dueDateISO).getTime()
   );

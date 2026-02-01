@@ -1,18 +1,37 @@
+"use client";
+
 import { getPathBySlug } from "@/data/learningPaths";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ChevronRight, Clock, BookOpen } from "lucide-react";
 import { PathProgressHeader } from "@/components/learner/PathProgressHeader";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
-export default async function LearningPathPage({
-  params,
-}: {
-  params: Promise<{ pathId: string }>;
-}) {
-  const { pathId } = await params;
+export default function LearningPathPage() {
+  const params = useParams();
+  const pathId = params.pathId as string;
+  const { getPublishedCoursesForPath } = useCanonicalStore();
   const path = getPathBySlug(pathId);
+  const publishedCourses = getPublishedCoursesForPath(pathId);
 
-  if (!path) notFound();
+  if (!path) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p className="text-slate-600">Learning path not found</p>
+      </div>
+    );
+  }
+
+  const byPhase = publishedCourses.reduce<Record<string, typeof publishedCourses>>((acc, c) => {
+    const phase = c.phase || "Other";
+    if (!acc[phase]) acc[phase] = [];
+    acc[phase].push(c);
+    return acc;
+  }, {});
+  const phaseOrder = ["Foundation", "Intermediate", "Advanced", "Capstone", "Other"];
+  const sortedPhases = Object.keys(byPhase).sort(
+    (a, b) => phaseOrder.indexOf(a) - phaseOrder.indexOf(b) || a.localeCompare(b)
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -45,20 +64,22 @@ export default async function LearningPathPage({
             </span>
             <span className="flex items-center gap-1">
               <BookOpen size={14} />
-              {path.phases.reduce((acc, p) => acc + p.courses.length, 0)} courses
+              {publishedCourses.length} courses
             </span>
           </div>
           <PathProgressHeader path={path} />
         </div>
 
         <div className="space-y-8">
-          {path.phases.map((phase, phaseIdx) => (
-            <section key={phaseIdx}>
+          {sortedPhases.map((phaseName, phaseIdx) => (
+            <section key={phaseName}>
               <h2 className="text-lg font-semibold text-slate-800 mb-4">
-                {phase.name}
+                {phaseName}
               </h2>
               <div className="space-y-3">
-                {phase.courses.map((course, courseIdx) => (
+                {byPhase[phaseName]
+                  .sort((a, b) => a.courseOrder - b.courseOrder)
+                  .map((course, courseIdx) => (
                     <Link
                       key={course.id}
                       href={`/dashboard/learner/courses/${path.slug}/${course.id}`}
@@ -76,7 +97,7 @@ export default async function LearningPathPage({
                             {course.description}
                           </p>
                           <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
-                            <span>{course.duration}</span>
+                            <span>{course.estimatedDuration}</span>
                             <span>{course.instructor.name}</span>
                           </div>
                         </div>
@@ -91,6 +112,13 @@ export default async function LearningPathPage({
             </section>
           ))}
         </div>
+
+        {publishedCourses.length === 0 && (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center">
+            <p className="text-slate-600">No published courses in this path yet.</p>
+            <p className="text-sm text-slate-500 mt-1">Instructor will add courses here when they are published.</p>
+          </div>
+        )}
       </div>
     </div>
   );

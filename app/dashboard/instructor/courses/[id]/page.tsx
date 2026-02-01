@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -19,14 +19,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import {
-  getCourseById,
   toLearnerModules,
   CONTENT_TYPES,
-  getAvailableAssessments,
   type CanonicalModule,
   type ContentItem,
   type ContentType,
 } from "@/data/canonicalCourses";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 function getContentIcon(type: ContentType) {
   switch (type) {
@@ -46,16 +45,16 @@ export default function InstructorCourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = params.id as string;
-
+  const { getCourseById, updateCourse, setCourseModules, publishCourse, getAvailableAssessments } = useCanonicalStore();
   const course = getCourseById(courseId);
-  const [modules, setModules] = useState<CanonicalModule[]>(
-    course?.modules ?? []
-  );
-  const [expandedModuleId, setExpandedModuleId] = useState<string | null>(
-    modules[0]?.id ?? null
-  );
+  const [modules, setModules] = useState<CanonicalModule[]>(course?.modules ?? []);
+  const [expandedModuleId, setExpandedModuleId] = useState<string | null>(modules[0]?.id ?? null);
   const [draggedModuleId, setDraggedModuleId] = useState<string | null>(null);
   const [draggedContentId, setDraggedContentId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (course) setModules([...course.modules]);
+  }, [courseId]);
 
   if (!course) {
     return (
@@ -169,6 +168,16 @@ export default function InstructorCourseDetailPage() {
   const assessments = getAvailableAssessments();
   const learnerModules = toLearnerModules(modules);
 
+  const handleSave = () => {
+    setCourseModules(courseId, modules);
+    updateCourse(courseId, {});
+  };
+
+  const handlePublish = () => {
+    setCourseModules(courseId, modules);
+    publishCourse(courseId);
+  };
+
   return (
     <div className="space-y-6">
       <Link
@@ -220,7 +229,10 @@ export default function InstructorCourseDetailPage() {
             >
               Preview as Learner
             </Link>
-            <button className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium">
+            <button
+              onClick={course.status === "draft" ? handlePublish : handleSave}
+              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-medium"
+            >
               {course.status === "draft" ? "Publish" : "Save Changes"}
             </button>
           </div>

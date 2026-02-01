@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Users,
   BarChart3,
-  Settings,
 } from "lucide-react";
 
 const menuItems = [
@@ -17,7 +16,6 @@ const menuItems = [
   { label: "Assessments", href: "/dashboard/instructor/assessments", icon: ClipboardList },
   { label: "Learners", href: "/dashboard/instructor/learners", icon: Users },
   { label: "Reports", href: "/dashboard/instructor/reports", icon: BarChart3 },
-  { label: "Profile & Settings", href: "/dashboard/instructor/settings", icon: Settings },
 ];
 
 export default function InstructorSidebar() {

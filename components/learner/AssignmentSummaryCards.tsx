@@ -1,9 +1,11 @@
 "use client";
 
 import { ClipboardList, CheckCircle, Clock, AlertCircle } from "lucide-react";
-import { assignments } from "@/data/assignments";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 export default function AssignmentSummaryCards() {
+  const { getAssignments } = useCanonicalStore();
+  const assignments = getAssignments();
   const total = assignments.length;
   const completed = assignments.filter(
     (a) => a.status === "Reviewed" || a.status === "Submitted"

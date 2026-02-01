@@ -1,27 +1,296 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Plus,
   Search,
-  ClipboardList,
   FileText,
   HelpCircle,
-  Filter,
-  ChevronDown,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Send,
-  MessageSquare,
 } from "lucide-react";
 import { pendingAssessments, ASSESSMENT_TYPES, ASSIGNMENT_SUBTYPES } from "@/data/instructorData";
-import { assignments } from "@/data/assignments";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
+import type { Assignment } from "@/data/assignments";
+import { ROLES as ASSIGNMENT_ROLES } from "@/data/assignments";
+import type { QuizConfig } from "@/data/quizData";
+import type { CanonicalCourse } from "@/data/canonicalCourses";
+
+function CreateAssessmentModal({
+  courses,
+  onClose,
+  onCreated,
+  addAssignment,
+  addOrUpdateQuizConfig,
+}: {
+  courses: CanonicalCourse[];
+  onClose: () => void;
+  onCreated: () => void;
+  addAssignment: (a: Assignment) => void;
+  addOrUpdateQuizConfig: (q: QuizConfig) => void;
+}) {
+  const [createType, setCreateType] = useState<"assignment" | "quiz">("assignment");
+  const [title, setTitle] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [moduleId, setModuleId] = useState("");
+  const [moduleTitle, setModuleTitle] = useState("");
+  const [role, setRole] = useState<Assignment["role"]>("Full Stack");
+  const [type, setType] = useState<Assignment["type"]>("Coding");
+  const [dueDateISO, setDueDateISO] = useState("");
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(15);
+  const [passingScore, setPassingScore] = useState(70);
+  const [attemptLimit, setAttemptLimit] = useState(2);
+  const [description, setDescription] = useState("");
+
+  const selectedCourse = courses.find((c) => c.id === courseId);
+  const modules = selectedCourse?.modules ?? [];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    const course = courses.find((c) => c.id === courseId);
+    const courseTitle = course?.title ?? "Course";
+    const pathSlug = course?.pathSlug ?? "fullstack";
+    const modTitle = (moduleTitle || modules.find((m) => m.id === moduleId)?.title) ?? "Module";
+    const dueDate = dueDateISO ? new Date(dueDateISO).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+
+    if (createType === "assignment") {
+      const id = `a-${Date.now()}`;
+      addAssignment({
+        id,
+        title: title.trim(),
+        course: courseTitle,
+        courseId: courseId || id,
+        pathSlug,
+        module: modTitle,
+        moduleId: moduleId || "m1",
+        role,
+        type,
+        dueDate,
+        dueDateISO: dueDateISO || new Date().toISOString().slice(0, 10),
+        status: "Assigned",
+        description: description.trim() || undefined,
+      });
+    } else {
+      const id = `q-${Date.now()}`;
+      addOrUpdateQuizConfig({
+        id,
+        assignmentId: id,
+        title: title.trim(),
+        course: courseTitle,
+        module: modTitle,
+        questionCount: 0,
+        timeLimitMinutes,
+        passingScore,
+        attemptLimit,
+        instructions: [],
+        questions: [],
+      });
+    }
+    onCreated();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
+        <div className="p-6 border-b border-slate-200">
+          <h2 className="text-xl font-semibold text-slate-800">Create Assessment</h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Assignments and quizzes appear in Learner → Assignments and in the course module. Completion updates progress and readiness.
+          </p>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Assessment Type</label>
+            <select
+              value={createType}
+              onChange={(e) => setCreateType(e.target.value as "assignment" | "quiz")}
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="assignment">Assignment</option>
+              <option value="quiz">Quiz</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={createType === "assignment" ? "e.g., Build REST API" : "e.g., Module Quiz"}
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Course</label>
+              <select
+                value={courseId}
+                onChange={(e) => {
+                  setCourseId(e.target.value);
+                  setModuleId("");
+                  setModuleTitle("");
+                }}
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="">Select course</option>
+                {courses.filter((c) => c.status === "published" || c.status === "draft").map((c) => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Module</label>
+              <select
+                value={moduleId}
+                onChange={(e) => {
+                  const m = modules.find((x) => x.id === e.target.value);
+                  setModuleId(e.target.value);
+                  setModuleTitle(m?.title ?? "");
+                }}
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="">Select module</option>
+                {modules.map((m) => (
+                  <option key={m.id} value={m.id}>{m.title}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {createType === "assignment" && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as Assignment["role"])}
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    {ASSIGNMENT_ROLES.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value as Assignment["type"])}
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    {ASSIGNMENT_SUBTYPES.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
+                <input
+                  type="date"
+                  value={dueDateISO}
+                  onChange={(e) => setDueDateISO(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={2}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </>
+          )}
+          {createType === "quiz" && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Time Limit (min)</label>
+                <input
+                  type="number"
+                  value={timeLimitMinutes}
+                  onChange={(e) => setTimeLimitMinutes(Number(e.target.value) || 15)}
+                  min={1}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Pass %</label>
+                <input
+                  type="number"
+                  value={passingScore}
+                  onChange={(e) => setPassingScore(Number(e.target.value) || 70)}
+                  min={0}
+                  max={100}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Attempt Limit</label>
+                <input
+                  type="number"
+                  value={attemptLimit}
+                  onChange={(e) => setAttemptLimit(Number(e.target.value) || 2)}
+                  min={1}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+            </div>
+          )}
+          <div className="p-6 border-t border-slate-200 flex justify-end gap-3 -mx-6 -mb-6 px-6 pb-6 pt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50">
+              Cancel
+            </button>
+            <button type="submit" className="px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700">
+              Create {createType === "assignment" ? "Assignment" : "Quiz"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 export default function InstructorAssessmentsPage() {
   const [activeTab, setActiveTab] = useState<"all" | "assignments" | "quizzes" | "submissions">("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const {
+    getAssignments,
+    getQuizConfigs,
+    getCoursesForInstructor,
+    addAssignment,
+    addOrUpdateQuizConfig,
+  } = useCanonicalStore();
+  const assignments = getAssignments();
+  const quizConfigs = getQuizConfigs();
+  const courses = getCoursesForInstructor();
+
+  const allAssessments = useMemo(() => {
+    const list: { id: string; title: string; type: "assignment" | "quiz"; course: string; module: string; dueDate?: string }[] = [];
+    assignments.forEach((a) => {
+      list.push({
+        id: a.id,
+        title: a.title,
+        type: "assignment",
+        course: a.course,
+        module: a.module,
+        dueDate: a.dueDate,
+      });
+    });
+    Object.values(quizConfigs).forEach((q) => {
+      list.push({
+        id: q.id,
+        title: q.title,
+        type: "quiz",
+        course: q.course,
+        module: q.module,
+      });
+    });
+    return list;
+  }, [assignments, quizConfigs]);
 
   const tabs = [
     { id: "all" as const, label: "All Assessments" },
@@ -79,6 +348,13 @@ export default function InstructorAssessmentsPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
+      </div>
+
+      {/* Sync note */}
+      <div className="bg-teal-50 border border-teal-200 rounded-xl p-4">
+        <p className="text-sm text-teal-800">
+          <strong>Single source of truth:</strong> Assignments and quizzes created here appear in Learner → Assignments and inside the relevant course module. Completion updates course progress and readiness score.
+        </p>
       </div>
 
       {/* Content by Tab */}
@@ -145,36 +421,50 @@ export default function InstructorAssessmentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {assignments.slice(0, 10).map((a) => (
-                  <tr key={a.id} className="border-b border-slate-100 last:border-none hover:bg-slate-50 transition">
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        {a.type === "Quiz" ? (
-                          <HelpCircle className="w-5 h-5 text-purple-500" />
-                        ) : (
-                          <FileText className="w-5 h-5 text-indigo-500" />
-                        )}
-                        <div>
-                          <p className="font-medium text-slate-800">{a.title}</p>
-                          <p className="text-xs text-slate-500">{a.type}</p>
+                {allAssessments
+                  .filter(
+                    (a) =>
+                      activeTab === "all" ||
+                      (activeTab === "assignments" && a.type === "assignment") ||
+                      (activeTab === "quizzes" && a.type === "quiz")
+                  )
+                  .filter(
+                    (a) =>
+                      !searchQuery.trim() ||
+                      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      a.course.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .slice(0, 20)
+                  .map((a) => (
+                    <tr key={`${a.type}-${a.id}`} className="border-b border-slate-100 last:border-none hover:bg-slate-50 transition">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          {a.type === "quiz" ? (
+                            <HelpCircle className="w-5 h-5 text-purple-500" />
+                          ) : (
+                            <FileText className="w-5 h-5 text-indigo-500" />
+                          )}
+                          <div>
+                            <p className="font-medium text-slate-800">{a.title}</p>
+                            <p className="text-xs text-slate-500">{a.type}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        a.type === "Quiz" ? "bg-purple-100 text-purple-700" : "bg-indigo-100 text-indigo-700"
-                      }`}>
-                        {a.type === "Quiz" ? "Quiz" : "Assignment"}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-sm text-slate-600">
-                      {a.course} / {a.module}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-slate-600">{a.dueDate}</td>
-                    <td className="py-4 px-4 text-center text-slate-600">—</td>
-                    <td className="py-4 px-4 text-center text-slate-600">—</td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          a.type === "quiz" ? "bg-purple-100 text-purple-700" : "bg-indigo-100 text-indigo-700"
+                        }`}>
+                          {a.type === "quiz" ? "Quiz" : "Assignment"}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-sm text-slate-600">
+                        {a.course} / {a.module}
+                      </td>
+                      <td className="py-4 px-4 text-sm text-slate-600">{a.dueDate ?? "—"}</td>
+                      <td className="py-4 px-4 text-center text-slate-600">—</td>
+                      <td className="py-4 px-4 text-center text-slate-600">—</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -183,116 +473,13 @@ export default function InstructorAssessmentsPage() {
 
       {/* Create Assessment Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
-            <div className="p-6 border-b border-slate-200">
-              <h2 className="text-xl font-semibold text-slate-800">Create Assessment</h2>
-              <p className="text-sm text-slate-500 mt-1">
-                Assignments and quizzes affect course completion, learner progress, readiness, and certifications.
-              </p>
-            </div>
-            <form className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Assessment Type</label>
-                <select className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
-                  {ASSESSMENT_TYPES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Build REST API"
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Link to Course</label>
-                  <select className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <option>REST API Development</option>
-                    <option>Programming Basics</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Module / Chapter</label>
-                  <select className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <option>API Design & CRUD</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Assessment Subtype</label>
-                  <select className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    {ASSIGNMENT_SUBTYPES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
-                  <input
-                    type="date"
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Submission Type</label>
-                  <select className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    <option>File upload</option>
-                    <option>Text/Link</option>
-                    <option>GitHub URL</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Time Limit (quizzes, minutes)</label>
-                  <input
-                    type="number"
-                    placeholder="15"
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Passing Score (%)</label>
-                  <input
-                    type="number"
-                    placeholder="70"
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Attempt Limit</label>
-                  <input
-                    type="number"
-                    placeholder="2"
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-              </div>
-            </form>
-            <div className="p-6 border-t border-slate-200 flex justify-end gap-3">
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2.5 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
-              >
-                Create Assessment
-              </button>
-            </div>
-          </div>
-        </div>
+        <CreateAssessmentModal
+          courses={courses}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => setShowCreateModal(false)}
+          addAssignment={addAssignment}
+          addOrUpdateQuizConfig={addOrUpdateQuizConfig}
+        />
       )}
     </div>
   );

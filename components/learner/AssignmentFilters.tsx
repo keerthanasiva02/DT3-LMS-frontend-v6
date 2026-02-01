@@ -1,16 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, Filter } from "lucide-react";
-import {
-  assignments,
-  ROLES,
-  ASSIGNMENT_TYPES,
-} from "@/data/assignments";
+import { ROLES, ASSIGNMENT_TYPES } from "@/data/assignments";
 import type { Assignment } from "@/data/assignments";
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 const STATUSES = ["Assigned", "Due", "Submitted", "Reviewed", "Overdue"] as const;
-const COURSES = [...new Set(assignments.map((a) => a.course))].sort();
 const SORT_OPTIONS = [
   { value: "due-asc", label: "Due date (earliest first)" },
   { value: "due-desc", label: "Due date (latest first)" },
@@ -33,6 +29,10 @@ export default function AssignmentFilters({
 }: {
   onFilter?: (filtered: Assignment[]) => void;
 }) {
+  const { getAssignments } = useCanonicalStore();
+  const assignments = getAssignments();
+  const COURSES = useMemo(() => [...new Set(assignments.map((a) => a.course))].sort(), [assignments]);
+
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     role: "",

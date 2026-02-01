@@ -1,18 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import AssignmentCard from "./AssignmentCard";
 import AssignmentFilters from "./AssignmentFilters";
-import { assignments } from "@/data/assignments";
 import type { Assignment } from "@/data/assignments";
-
-const initialSorted = [...assignments].sort(
-  (a, b) =>
-    new Date(a.dueDateISO).getTime() - new Date(b.dueDateISO).getTime()
-);
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 export default function AssignmentListing() {
+  const { getAssignments } = useCanonicalStore();
+  const assignments = getAssignments();
+  const initialSorted = useMemo(
+    () => [...assignments].sort((a, b) => new Date(a.dueDateISO).getTime() - new Date(b.dueDateISO).getTime()),
+    [assignments]
+  );
   const [filtered, setFiltered] = useState<Assignment[]>(initialSorted);
+  useEffect(() => {
+    setFiltered(initialSorted);
+  }, [initialSorted]);
 
   return (
     <div className="space-y-6">

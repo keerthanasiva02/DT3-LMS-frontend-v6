@@ -291,6 +291,11 @@ export function getCoursesForInstructor(): CanonicalCourse[] {
   );
 }
 
+/** Initial data for store hydration (single source of truth). */
+export function getInitialCanonicalCourses(): CanonicalCourse[] {
+  return JSON.parse(JSON.stringify(_canonicalCourses));
+}
+
 export function getPublishedCoursesForPath(pathSlug: string): CanonicalCourse[] {
   return _canonicalCourses.filter(
     (c) => c.pathSlug === pathSlug && c.status === "published"

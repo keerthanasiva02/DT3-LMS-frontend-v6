@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { Clock, HelpCircle, ChevronRight } from "lucide-react";
-import { assignments } from "@/data/assignments";
 import AssignmentStatusBadge from "./AssignmentStatusBadge";
-
-const quizzes = assignments.filter((a) => a.type === "Quiz");
+import { useCanonicalStore } from "@/context/CanonicalStoreContext";
 
 export default function QuizzesSection() {
+  const { getAssignments } = useCanonicalStore();
+  const assignments = getAssignments();
+  const quizzes = assignments.filter((a) => a.type === "Quiz");
   if (quizzes.length === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500">
